@@ -1,3 +1,4 @@
+# chat_service/consumers.py
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.db import database_sync_to_async
@@ -5,11 +6,10 @@ from .models import ChatRoom, Message
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.carona_id = self.scope['url_route']['kwargs']['carona_id']
+        self.carona_id = self.scope['url_route']['kwargs']['carona_id']  # string UUID
         self.room_group_name = f'chat_{self.carona_id}'
-        self.usuario_id = self.scope.get('usuario_id')  # injetado via middleware customizado (ver abaixo)
+        self.usuario_id = self.scope.get('usuario_id')  # string UUID ou None
 
-        # Verificar se o usuário pode acessar essa sala (chamada REST ao serviço de caronas)
         autorizado = await self.verificar_permissao()
         if not autorizado:
             await self.close(code=4003)
@@ -27,7 +27,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         if not mensagem:
             return
 
-        # Salva no banco
+        # Salva no banco (room já obtido pela carona_id UUID)
         room, _ = await database_sync_to_async(ChatRoom.objects.get_or_create)(carona_id=self.carona_id)
         msg = await database_sync_to_async(Message.objects.create)(
             room=room, usuario_id=self.usuario_id, conteudo=mensagem
@@ -38,7 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             {
                 'type': 'chat_message',
                 'message': mensagem,
-                'usuario_id': self.usuario_id,
+                'usuario_id': str(self.usuario_id),  # garante string
                 'data_envio': msg.data_envio.isoformat(),
             }
         )
@@ -53,13 +53,5 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     async def verificar_permissao(self):
-        # Chamada HTTP ao serviço de caronas para saber se usuário pode participar
-        # Exemplo com httpx assíncrono
+        # Exemplo de chamada externa (mantida como placeholder)
         return True
-        # import httpx
-        # async with httpx.AsyncClient() as client:
-        #     resp = await client.get(
-        #         f"http://carona-service/api/caronas/{self.carona_id}/autorizado/",
-        #         params={'usuario_id': self.usuario_id}
-        #     )
-        #     return resp.status_code == 200 and resp.json().get('autorizado', False)
