@@ -26,3 +26,21 @@ class Message(models.Model):
 
     def __str__(self):
         return f"{self.usuario_id} em {self.room.carona_id}: {self.conteudo[:30]}"
+
+# chat_service/models.py
+from django.db import models
+from easyaudit.models import CRUDEvent
+from django.contrib.contenttypes.models import ContentType
+
+class ChatRoomAudit(CRUDEvent):
+    class Meta:
+        proxy = True
+        verbose_name = 'Auditoria ChatRoom'
+        verbose_name_plural = 'Auditoria ChatRooms'
+
+class MessageAudit(CRUDEvent):
+    class Meta:
+        proxy = True
+        verbose_name = 'Auditoria Mensagem'
+        verbose_name_plural = 'Auditoria Mensagens'
+
