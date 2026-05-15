@@ -140,11 +140,17 @@ CHANNEL_LAYERS = {
 }
 
 # DRF
+# REST_FRAMEWORK = {
+#     'DEFAULT_AUTHENTICATION_CLASSES': [
+#         'chat_service.authentication.ServiceTokenAuthentication',
+#     ],
+# }
+
+
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'chat_service.authentication.ServiceTokenAuthentication',
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.AllowAny',
     ],
 }
 
-
-SERVICE_API_KEY = 'ch4t-s3rv1ce-sup3r-s3cr3t'
+# SERVICE_API_KEY = 'ch4t-s3rv1ce-sup3r-s3cr3t'

@@ -38,8 +38,8 @@ services:
       - "8002:8002"
     depends_on:
       - kafka
-    environment:
-      - SERVICE_API_KEY=ch4t-s3rv1ce-sup3r-s3cr3t
+    # environment:
+    #   - SERVICE_API_KEY=ch4t-s3rv1ce-sup3r-s3cr3t
     container_name: chat-service
     networks:
       - raijmobi-network

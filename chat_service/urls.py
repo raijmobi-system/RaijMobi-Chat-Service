@@ -1,9 +1,10 @@
 # chat_service/urls.py
 from django.urls import path
-from .views import RoomDetail, MessageList
+from .views import RoomDetail, MessageList, RoomListCreate
 
 urlpatterns = [
     # Alterado de <int:carona_id> para <uuid:carona_id>
+    path('rooms/', RoomListCreate.as_view(), name='room-list-create'),          # novo endpoint
     path('rooms/<uuid:carona_id>/', RoomDetail.as_view(), name='room-detail'),
     path('rooms/<uuid:carona_id>/messages/', MessageList.as_view(), name='message-list'),
 ]
