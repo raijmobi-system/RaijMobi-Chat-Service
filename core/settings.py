@@ -133,7 +133,7 @@ CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_kafka.core.KafkaChannelLayer",
         "CONFIG": {
-            "hosts": ["kafka:9092"],
+            "hosts": ["kafka-chat:9092"],
             "topic": "chat-service",
         },
     },

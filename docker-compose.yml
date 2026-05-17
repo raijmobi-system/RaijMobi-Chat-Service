@@ -1,25 +1,25 @@
 services:
-  zookeeper:
+  zookeeper-chat:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
-    container_name: zookeeper
+    container_name: zookeeper-chat
     networks:
       - raijmobi-network
 
-  kafka:
+  kafka-chat:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-      - zookeeper
+      - zookeeper-chat
     environment:
       KAFKA_BROKER_ID: 1
-      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper-chat:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-chat:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
-    container_name: kafka
+    container_name: kafka-chat
     networks:
       - raijmobi-network
 
@@ -32,14 +32,15 @@ services:
         python manage.py makemigrations chat_service --noinput &&
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
+        python chat_service/consumer.py &
         uvicorn core.asgi:application --host 0.0.0.0 --port 8002
       "
     ports:
       - "8002:8002"
     depends_on:
-      - kafka
-    # environment:
-    #   - SERVICE_API_KEY=ch4t-s3rv1ce-sup3r-s3cr3t
+      - kafka-chat
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-user:9092
     container_name: chat-service
     networks:
       - raijmobi-network
