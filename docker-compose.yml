@@ -33,10 +33,11 @@ services:
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
         python chat_service/consumer.py &
-        uvicorn core.asgi:application --host 0.0.0.0 --port 8002
+        python chat_service/ride_consumer.py &
+        uvicorn core.asgi:application --host 0.0.0.0 --port 8000
       "
     ports:
-      - "8002:8002"
+      - "8002:8000"
     depends_on:
       - kafka-chat
     environment:

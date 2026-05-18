@@ -67,24 +67,47 @@ class UserClient(models.Model):
 # ==========================================
 # SALA DE CHAT (AGORA COM created_by)
 # ==========================================
+# class ChatRoom(models.Model):
+#     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+#     carona_id = models.UUIDField(unique=True)          # ID da carona (serviço externo)
+#     criado_em = models.DateTimeField(auto_now_add=True)
+#     ativo = models.BooleanField(default=True)
+#     created_by = models.ForeignKey(
+#         UserClient,
+#         on_delete=models.SET_NULL,
+#         null=True,
+#         blank=True,
+#         related_name='salas_criadas',
+#         help_text="Usuário que criou a sala (opcional)"
+#     )
+
+#     def __str__(self):
+#         return f"Room carona {self.carona_id}"
+
+
 class ChatRoom(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    carona_id = models.UUIDField(unique=True)          # ID da carona (serviço externo)
+    carona_id = models.UUIDField(unique=True)
     criado_em = models.DateTimeField(auto_now_add=True)
     ativo = models.BooleanField(default=True)
-    created_by = models.ForeignKey(
-        UserClient,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='salas_criadas',
-        help_text="Usuário que criou a sala (opcional)"
+
+    # Novos campos espelhando a carona
+    driver = models.ForeignKey(
+        UserClient, on_delete=models.SET_NULL, null=True, related_name='salas_como_motorista'
     )
+    origin = models.CharField(max_length=255, blank=True)
+    destination = models.CharField(max_length=255, blank=True)
+    start_time = models.DateTimeField(null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    available_seats = models.IntegerField(null=True, blank=True)
+
+    # Passageiros (ManyToMany – opcional, pode ser gerenciado depois)
+    passengers = models.ManyToManyField(UserClient, related_name='salas_como_passageiro', blank=True)
 
     def __str__(self):
         return f"Room carona {self.carona_id}"
 
-
+        
 # ==========================================
 # MENSAGEM (referencia UserClient via FK)
 # ==========================================
