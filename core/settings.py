@@ -154,3 +154,6 @@ REST_FRAMEWORK = {
 }
 
 # SERVICE_API_KEY = 'ch4t-s3rv1ce-sup3r-s3cr3t'
+
+
+KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka-user:9092')
