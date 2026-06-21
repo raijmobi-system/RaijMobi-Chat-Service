@@ -26,31 +26,6 @@ class MessageAuditAdmin(admin.ModelAdmin):
 admin.site.register(ChatRoomAudit, ChatRoomAuditAdmin)
 admin.site.register(MessageAudit, MessageAuditAdmin)
 
-# ─── Admins para Request Events ───────────────────────────
-# class ChatRequestAuditAdmin(admin.ModelAdmin):
-#     list_display = ('url', 'method', 'user', 'datetime')   # ✅ datetime
-#     list_filter = ('method', 'datetime')                   # ✅ datetime
-#     search_fields = ('url',)
-
-#     def get_queryset(self, request):
-#         qs = super().get_queryset(request)
-#         return qs.filter(url__startswith='/api/rooms/')
-
-# class AdminRequestAuditAdmin(admin.ModelAdmin):
-#     list_display = ('url', 'method', 'user', 'datetime')   # ✅ datetime
-#     list_filter = ('method', 'datetime')                   # ✅ datetime
-#     search_fields = ('url',)
-
-#     def get_queryset(self, request):
-#         qs = super().get_queryset(request)
-#         return qs.filter(url__startswith='/admin/')
-
-# admin.site.register(ChatRequestAudit, ChatRequestAuditAdmin)
-# admin.site.register(AdminRequestAudit, AdminRequestAuditAdmin)
-
-
-# ... mantenha todos os imports e admins de auditoria que já existem
-
 from django.contrib import admin
 from chat_service.models import ChatRoom, Message   # seus modelos originais
 

@@ -3,8 +3,6 @@ from rest_framework import generics, status
 from rest_framework.response import Response
 from .models import UserClient, ChatRoom, Message
 from .serializers import ChatRoomSerializer, MessageSerializer
-# from .authentication import ServiceTokenAuthentication   # descomente se usar
-# from rest_framework.permissions import IsAuthenticated
 from .notification_producer import send_chat_notification
 from django.db import transaction
 
@@ -53,69 +51,6 @@ class MessageList(generics.ListCreateAPIView):
         for user_id in participants:
             msg_text = f"Nova mensagem de {sender.name} no chat da carona {room.carona_id}"
             send_chat_notification(user_id, msg_text)
-
-
-# class RoomListCreate(generics.ListCreateAPIView):
-
-#     """GET /api/chat/rooms/  |  POST /api/chat/rooms/ (criar sala)"""
-#     queryset = ChatRoom.objects.all()
-#     serializer_class = ChatRoomSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         carona_id = request.data.get('carona_id')
-#         created_by_id = request.data.get('created_by_id')
-
-#         if not carona_id:
-#             return Response({'error': 'campo carona_id é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Verifica se a sala já existe
-#         if ChatRoom.objects.filter(carona_id=carona_id).exists():
-#             return Response({'error': 'sala já existe'}, status=status.HTTP_409_CONFLICT)
-
-#         # Valida created_by_id se informado
-#         created_by = None
-#         if created_by_id:
-#             try:
-#                 created_by = UserClient.objects.get(id=created_by_id)
-#             except UserClient.DoesNotExist:
-#                 return Response({'error': f'Usuário com id {created_by_id} não encontrado'},
-#                                 status=status.HTTP_400_BAD_REQUEST)
-
-#         room = ChatRoom.objects.create(carona_id=carona_id, created_by=created_by)
-#         serializer = self.get_serializer(room)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# class RoomListCreate(generics.ListCreateAPIView):
-#     queryset = ChatRoom.objects.all()
-#     serializer_class = ChatRoomSerializer
-
-#     def post(self, request, *args, **kwargs):
-#         carona_id = request.data.get('carona_id')
-#         # Opcional: receber o ID do motorista (criador da sala)
-#         driver_id = request.data.get('driver_id')  # ou 'created_by_id'
-
-#         if not carona_id:
-#             return Response({'error': 'campo carona_id é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
-
-#         # Verifica se a sala já existe
-#         if ChatRoom.objects.filter(carona_id=carona_id).exists():
-#             return Response({'error': 'sala já existe'}, status=status.HTTP_409_CONFLICT)
-
-#         # Obtém o motorista se o ID foi enviado
-#         driver = None
-#         if driver_id:
-#             try:
-#                 driver = UserClient.objects.get(id=driver_id)
-#             except UserClient.DoesNotExist:
-#                 return Response({'error': f'Motorista com id {driver_id} não encontrado'},
-#                                 status=status.HTTP_400_BAD_REQUEST)
-
-#         # Cria a sala com o campo 'driver' (que existe no modelo)
-#         room = ChatRoom.objects.create(carona_id=carona_id, driver=driver)
-
-#         serializer = self.get_serializer(room)
-#         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    
 
 class RoomListCreate(generics.ListCreateAPIView):
     queryset = ChatRoom.objects.all()
