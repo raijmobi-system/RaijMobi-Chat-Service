@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'channels',
     'easyaudit', 
     'chat_service',
+    'django_prometheus',
 ]
 
 MIDDLEWARE = [
@@ -57,6 +58,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'easyaudit.middleware.easyaudit.EasyAuditMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware', 
+    "django_prometheus.middleware.PrometheusBeforeMiddleware",
+    "django_prometheus.middleware.PrometheusAfterMiddleware",
 ]
 
 ROOT_URLCONF = 'core.urls'

@@ -5,6 +5,7 @@ from .models import UserClient, ChatRoom, Message
 from .serializers import ChatRoomSerializer, MessageSerializer
 from .notification_producer import send_chat_notification
 from django.db import transaction
+from .metrics import chat_rooms_total,messages_total
 
 class RoomDetail(generics.RetrieveAPIView):
     """GET /api/rooms/{carona_id}/"""
@@ -36,6 +37,8 @@ class MessageList(generics.ListCreateAPIView):
         room, _ = ChatRoom.objects.get_or_create(carona_id=carona_id)
         usuario = UserClient.objects.get(id=serializer.validated_data['usuario_id'])
         message = serializer.save(room=room, usuario=usuario)
+
+        messages_total.inc()
 
         # Envia notificações para os outros participantes após o commit
         transaction.on_commit(lambda: self._send_chat_notifications(room, usuario, message))
@@ -76,6 +79,8 @@ class RoomListCreate(generics.ListCreateAPIView):
                                 status=status.HTTP_400_BAD_REQUEST)
 
         room = ChatRoom.objects.create(carona_id=carona_id, driver=driver)
+
+        chat_rooms_total.inc()
 
         # Adiciona os passageiros
         for pid in passenger_ids:
