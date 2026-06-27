@@ -23,6 +23,25 @@ services:
     networks:
       - raijmobi-network
 
+  # ========== PostgreSQL ==========
+  postgres-chat:
+    image: postgres:15
+    container_name: postgres-chat
+    environment:
+      POSTGRES_DB: ${DB_NAME:-raijmobi_chat_db}
+      POSTGRES_USER: ${DB_USER:-raijmobi_chat}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-raijmobi_pass}
+    volumes:
+      - postgres_chat_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-raijmobi_chat} -d ${DB_NAME:-raijmobi_chat_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - raijmobi-network
+
+  # ========== Serviço principal ==========
   chat-service:
     build:
       context: .
@@ -39,13 +58,48 @@ services:
     ports:
       - "8002:8000"
     depends_on:
-      - kafka-chat
+      kafka-chat:
+        condition: service_started
+      postgres-chat:
+        condition: service_healthy
     environment:
+      - DB_NAME=raijmobi_chat_db
+      - DB_USER=raijmobi_chat
+      - DB_PASSWORD=raijmobi_pass
+      - DB_HOST=postgres-chat
+      - DB_PORT=5432
       - KAFKA_BOOTSTRAP_SERVERS=kafka-user:9092
       - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092
     container_name: chat-service
     networks:
       - raijmobi-network
+
+  # ========== Backup (corrigido) ==========
+  db-backup:
+    build:
+      context: ../RaijMobi-Services-postgres-backups/chat-service   # <- caminho para os scripts
+      dockerfile: Dockerfile
+    container_name: postgres-chat-db
+    environment:
+      - DB_HOST=postgres-chat
+      - DB_PORT=5432
+      - DB_NAME=${DB_NAME:-raijmobi_chat_db}
+      - DB_USER=${DB_USER:-raijmobi_chat}
+      - DB_PASSWORD=${DB_PASSWORD:-raijmobi_pass}
+      - BACKUP_DIR=/backups
+      - BACKUP_INTERVAL_SECONDS=86400
+      - TZ=America/Sao_Paulo
+    volumes:
+      - backup_chat_data:/backups
+    networks:
+      - raijmobi-network
+    depends_on:
+      - postgres-chat
+
+# ========== Volumes ==========
+volumes:
+  postgres_chat_data:
+  backup_chat_data:
 
 networks:
   raijmobi-network:
