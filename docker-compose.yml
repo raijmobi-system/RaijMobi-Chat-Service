@@ -68,8 +68,9 @@ services:
       - DB_PASSWORD=raijmobi_pass
       - DB_HOST=postgres-chat
       - DB_PORT=5432
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-user:9092
-      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-user:9092      # user-events + chat_notifications
+      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092  # ride-events (consumer de caronas)
+
     container_name: chat-service
     networks:
       - raijmobi-network
