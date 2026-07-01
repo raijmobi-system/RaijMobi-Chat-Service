@@ -64,6 +64,9 @@ class RoomListCreate(generics.ListCreateAPIView):
         driver_id = request.data.get('driver_id')
         passenger_ids = request.data.get('passenger_ids', [])  # lista de UUIDs
 
+        if isinstance(passenger_ids, str):
+            passenger_ids = [passenger_ids] 
+
         if not carona_id:
             return Response({'error': 'campo carona_id é obrigatório'}, status=status.HTTP_400_BAD_REQUEST)
 
