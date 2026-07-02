@@ -53,6 +53,7 @@ services:
         python manage.py collectstatic --noinput &&
         python chat_service/consumer.py &
         python chat_service/ride_consumer.py &
+        python chat_service/notification_consumer.py &
         uvicorn core.asgi:application --host 0.0.0.0 --port 8000
       "
     ports:
@@ -71,6 +72,7 @@ services:
       # CORRIGIDO: Apontando para o Kafka local ('kafka-chat') para os testes isolados funcionarem
       - KAFKA_BOOTSTRAP_SERVERS=kafka-chat:9092
       - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-chat:9092
+      - NOTIFICATION_API_TOKEN=ch4t-s3rv1ce-sup3r-s3cr3t
     container_name: chat-service
     networks:
       - raijmobi-network
