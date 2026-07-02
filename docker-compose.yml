@@ -68,55 +68,55 @@ services:
       - DB_PASSWORD=raijmobi_pass
       - DB_HOST=postgres-chat
       - DB_PORT=5432
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-user:9092      # user-events + chat_notifications
-      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092  # ride-events (consumer de caronas)
-
+      # CORRIGIDO: Apontando para o Kafka local ('kafka-chat') para os testes isolados funcionarem
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-chat:9092
+      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-chat:9092
     container_name: chat-service
     networks:
       - raijmobi-network
 
-  # ========== Backup (corrigido) ==========
-  db-backup:
-    build:
-      context: ../RaijMobi-Services-postgres-backups/chat-service   # <- caminho para os scripts
-      dockerfile: Dockerfile
-    container_name: postgres-chat-db
-    environment:
-      - DB_HOST=postgres-chat
-      - DB_PORT=5432
-      - DB_NAME=${DB_NAME:-raijmobi_chat_db}
-      - DB_USER=${DB_USER:-raijmobi_chat}
-      - DB_PASSWORD=${DB_PASSWORD:-raijmobi_pass}
-      - BACKUP_DIR=/backups
-      - BACKUP_INTERVAL_SECONDS=86400
-      - TZ=America/Sao_Paulo
-    volumes:
-      - backup_chat_data:/backups
-    networks:
-      - raijmobi-network
-    depends_on:
-      - postgres-chat
+  # ========== Backup (Comentado devido ao contexto local ausente) ==========
+  # db-backup:
+  #   build:
+  #     context: ../RaijMobi-Services-postgres-backups/chat-service   # <- caminho para os scripts
+  #     dockerfile: Dockerfile
+  #   container_name: postgres-chat-db
+  #   environment:
+  #     - DB_HOST=postgres-chat
+  #     - DB_PORT=5432
+  #     - DB_NAME=${DB_NAME:-raijmobi_chat_db}
+  #     - DB_USER=${DB_USER:-raijmobi_chat}
+  #     - DB_PASSWORD=${DB_PASSWORD:-raijmobi_pass}
+  #     - BACKUP_DIR=/backups
+  #     - BACKUP_INTERVAL_SECONDS=86400
+  #     - TZ=America/Sao_Paulo
+  #   volumes:
+  #     - backup_chat_data:/backups
+  #   networks:
+  #     - raijmobi-network
+  #   depends_on:
+  #     - postgres-chat
 
-  db-maintenance:
-    build:
-      context: ./maintenance
-      dockerfile: Dockerfile
-    container_name: postgres-chat-maintenance
-    depends_on:
-      postgres-chat:
-        condition: service_healthy
-    environment:
-      - DB_HOST=postgres-chat
-      - DB_PORT=5432
-      - DB_NAME=raijmobi_chat_db
-      - DB_USER=raijmobi_chat
-      - DB_PASSWORD=raijmobi_pass
-      - MAINTENANCE_INTERVAL_SECONDS=86400   # 24h; mude para 604800 (7 dias) se quiser
-      - TZ=America/Sao_Paulo
-      # - LOG_DIR=/app/logs                   # descomente se futuramente mapear volume de logs
-      # - LOG_RETENTION_DAYS=30
-    networks:
-      - raijmobi-network
+  # db-maintenance:
+  #   build:
+  #     context: ./maintenance
+  #     dockerfile: Dockerfile
+  #   container_name: postgres-chat-maintenance
+  #   depends_on:
+  #     postgres-chat:
+  #       condition: service_healthy
+  #   environment:
+  #     - DB_HOST=postgres-chat
+  #     - DB_PORT=5432
+  #     - DB_NAME=raijmobi_chat_db
+  #     - DB_USER=raijmobi_chat
+  #     - DB_PASSWORD=raijmobi_pass
+  #     - MAINTENANCE_INTERVAL_SECONDS=86400   # 24h; mude para 604800 (7 dias) se quiser
+  #     - TZ=America/Sao_Paulo
+  #     # - LOG_DIR=/app/logs                   # descomente se futuramente mapear volume de logs
+  #     # - LOG_RETENTION_DAYS=30
+  #   networks:
+  #     - raijmobi-network
 
 
 # ========== Volumes ==========
