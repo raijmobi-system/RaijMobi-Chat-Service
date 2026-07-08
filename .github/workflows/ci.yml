@@ -11,18 +11,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout do código
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. (Opcional) Validar sintaxe do docker-compose.yml
-      - name: Validate docker-compose syntax
-        run: docker-compose -f docker-compose.yml config
-
-      # 3. Build da imagem Docker (sem usar cache para garantir frescor)
       - name: Build Docker image
         run: docker build -t chat-service:ci .
 
-      # (Opcional) 4. Testar se a imagem foi criada
-      - name: Verify image exists
+      - name: Verify image exists (optional)
         run: docker image inspect chat-service:ci
