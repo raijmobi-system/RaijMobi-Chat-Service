@@ -23,6 +23,7 @@ services:
     networks:
       - raijmobi-network
 
+  # 1. SERVIÇO DA API WEB & WEBSOCKETS (Roda liso o Uvicorn)
   chat-service:
     build:
       context: .
@@ -32,8 +33,6 @@ services:
         python manage.py makemigrations chat_service --noinput &&
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
-        python chat_service/consumer.py &
-        python chat_service/ride_consumer.py &
         uvicorn core.asgi:application --host 0.0.0.0 --port 8000
       "
     ports:
@@ -41,9 +40,37 @@ services:
     depends_on:
       - kafka-chat
     environment:
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-user:9092
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-chat:9092
       - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092
     container_name: chat-service
+    networks:
+      - raijmobi-network
+
+  
+  consumer-user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python chat_service/consumer.py
+    depends_on:
+      - kafka-chat
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-ride:9092
+    container_name: chat-consumer-user
+    networks:
+      - raijmobi-network
+
+  
+  consumer-ride:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python chat_service/ride_consumer.py
+    depends_on:
+      - kafka-chat
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092
+    container_name: chat-consumer-ride
     networks:
       - raijmobi-network
 

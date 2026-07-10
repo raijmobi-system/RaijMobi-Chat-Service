@@ -6,6 +6,7 @@ from .serializers import ChatRoomSerializer, MessageSerializer
 from .notification_producer import send_chat_notification
 from django.db import transaction
 from .metrics import chat_rooms_total,messages_total
+from django.db.models import Q
 
 class RoomDetail(generics.RetrieveAPIView):
     """GET /api/rooms/{carona_id}/"""
@@ -56,8 +57,20 @@ class MessageList(generics.ListCreateAPIView):
             send_chat_notification(user_id, msg_text)
 
 class RoomListCreate(generics.ListCreateAPIView):
-    queryset = ChatRoom.objects.all()
     serializer_class = ChatRoomSerializer
+
+    def get_queryset(self):
+        # Aqui você pega o ID do usuário autenticado no Kong (ou via request)
+        # Assumindo que o ID vem no request.user ou nos headers (ajuste conforme sua auth)
+        user_id = self.request.META.get('HTTP_X_USER_ID') # Exemplo se usar Kong Header
+        
+        if not user_id:
+            return ChatRoom.objects.none() # Retorna vazio se não identificar quem é
+            
+        # Filtra as salas onde ele é o motorista OU está na lista de passageiros
+        return ChatRoom.objects.filter(
+            Q(driver__id=user_id) | Q(passengers__id=user_id)
+        ).distinct()
 
     def post(self, request, *args, **kwargs):
         carona_id = request.data.get('carona_id')
