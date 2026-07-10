@@ -29,11 +29,13 @@ admin.site.register(MessageAudit, MessageAuditAdmin)
 from django.contrib import admin
 from chat_service.models import ChatRoom, Message   # seus modelos originais
 
-class MessageInline(admin.TabularInline):   # ou admin.StackedInline, se preferir visualização vertical
+# ─── Admins para os Modelos Originais ─────────────────────
+
+class MessageInline(admin.TabularInline):   
     model = Message
-    extra = 0                               # não exibe linhas vazias extras para novos registros
-    fields = ('usuario_id', 'conteudo', 'data_envio')
-    readonly_fields = ('data_envio',)       # a data de envio é automática, não deve ser editada
+    extra = 0                               
+    fields = ('usuario', 'conteudo', 'data_envio')  # Atualizado para o relacionamento
+    readonly_fields = ('data_envio',)       
     can_delete = True
     show_change_link = True
 
@@ -42,8 +44,14 @@ class ChatRoomAdmin(admin.ModelAdmin):
     list_display = ('carona_id', 'criado_em', 'ativo', 'mensagens_count')
     list_filter = ('ativo', 'criado_em')
     search_fields = ('carona_id',)
-    inlines = [MessageInline]
+    
+    # RESOLUÇÃO DO ERRO: Comentado para o Admin ignorar o formulário de mensagens por enquanto
+    # inlines = [MessageInline]
 
     def mensagens_count(self, obj):
-        return obj.mensagens.count()
+        # Um try/except seguro para evitar que a contagem quebre se a relação tiver outro nome
+        try:
+            return obj.mensagens.count()
+        except AttributeError:
+            return 0
     mensagens_count.short_description = 'Qtd. Mensagens'

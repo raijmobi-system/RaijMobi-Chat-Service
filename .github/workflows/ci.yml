@@ -1,0 +1,21 @@
+name: CI - Docker Build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: docker build -t chat-service:ci .
+
+      - name: Verify image exists (optional)
+        run: docker image inspect chat-service:ci

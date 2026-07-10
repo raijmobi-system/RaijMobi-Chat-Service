@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'easyaudit', 
     'chat_service',
     'django_prometheus',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
@@ -60,6 +61,8 @@ MIDDLEWARE = [
     'whitenoise.middleware.WhiteNoiseMiddleware', 
     "django_prometheus.middleware.PrometheusBeforeMiddleware",
     "django_prometheus.middleware.PrometheusAfterMiddleware",
+    'corsheaders.middleware.CorsMiddleware', 
+    'django.middleware.common.CommonMiddleware',
 ]
 
 ROOT_URLCONF = 'core.urls'
@@ -85,13 +88,27 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
+
+# core/settings.py
+import os
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('DB_NAME', 'raijmobi_chat_db'),
+        'USER': os.environ.get('DB_USER', 'raijmobi_chat'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'raijmobi_pass'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -160,3 +177,9 @@ REST_FRAMEWORK = {
 
 
 KAFKA_BOOTSTRAP_SERVERS = os.environ.get('KAFKA_BOOTSTRAP_SERVERS', 'kafka-user:9092')
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
