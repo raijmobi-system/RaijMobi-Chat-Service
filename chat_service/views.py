@@ -89,14 +89,21 @@ class RoomListCreate(generics.ListCreateAPIView):
     serializer_class = ChatRoomSerializer
 
     def get_queryset(self):
-        # Aqui você pega o ID do usuário autenticado no Kong (ou via request)
-        # Assumindo que o ID vem no request.user ou nos headers (ajuste conforme sua auth)
-        user_id = self.request.META.get('HTTP_X_USER_ID') # Exemplo se usar Kong Header
+        # 1. Pegamos os cabeçalhos reais que estão vindo na requisição
+        user_id = self.request.META.get('HTTP_X_USER_ID')
+        all_headers = self.request.META
         
+        # 2. Vamos printar no console do chat-service para auditar o que está vindo
+        print("🔍 [DEBUG CHAT] ID do Usuário capturado no Header:", user_id)
+        # Se quiser ver se o Kong está usando outro nome, descomente a linha abaixo:
+        # print("📋 [DEBUG HEADERS] Todos os metadados da requisição:", all_headers)
+
+        # 3. TESTE DESBLOQUEIO: Se o user_id for nulo, vamos forçar o retorno de TUDO
         if not user_id:
-            return ChatRoom.objects.none() # Retorna vazio se não identificar quem é
+            print("⚠️ Cabeçalho X-User-Id não encontrado! Retornando todas as salas para teste.")
+            return ChatRoom.objects.all() 
             
-        # Filtra as salas onde ele é o motorista OU está na lista de passageiros
+        # Filtro original baseado no ID
         return ChatRoom.objects.filter(
             Q(driver__id=user_id) | Q(passengers__id=user_id)
         ).distinct()

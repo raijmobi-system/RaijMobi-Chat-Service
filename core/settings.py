@@ -34,7 +34,7 @@ DEBUG = True
 ASGI_APPLICATION = 'core.asgi.application'
 
 INSTALLED_APPS = [
-    #'daphne',
+    'daphne',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -151,10 +151,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_kafka.core.KafkaChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
-            "hosts": ["kafka-chat:9092"],
-            "topic": "chat-service",
+            "hosts": [os.environ.get("REDIS_URL", "redis://redis-chat:6379/0")],
         },
     },
 }

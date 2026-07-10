@@ -41,7 +41,15 @@ services:
     networks:
       - raijmobi-network
 
-  # ========== Serviço principal ==========
+  redis-chat:
+    image: redis:7-alpine
+    container_name: redis-chat
+    ports:
+      - "6380:6379" # Porta exposta caso queira debugar de fora
+    networks:
+      - raijmobi-network
+
+  # ========== Serviço principal (API & WebSockets) ==========
   chat-service:
     build:
       context: .
@@ -51,13 +59,36 @@ services:
         python manage.py makemigrations chat_service --noinput &&
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
-        uvicorn core.asgi:application --host 0.0.0.0 --port 8000
-      "
+        daphne -b 0.0.0.0 -p 8000 core.asgi:application"
     ports:
       - "8002:8000"
     depends_on:
       kafka-chat:
         condition: service_started
+      postgres-chat:
+        condition: service_healthy
+      redis-chat:               # 🌟 ADICIONE ESTA LINHA AQUI
+        condition: service_started
+    environment:
+      - DB_NAME=raijmobi_chat_db
+      - DB_USER=raijmobi_chat
+      - DB_PASSWORD=raijmobi_pass
+      - DB_HOST=postgres-chat
+      - DB_PORT=5432
+      - KAFKA_BOOTSTRAP_SERVERS=kafka-ride:9092
+      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092
+      - REDIS_URL=redis://redis-chat:6379/0  # 🌟 ADICIONE ESTA LINHA AQUI
+      - NOTIFICATION_API_TOKEN=ch4t-s3rv1ce-sup3r-s3cr3t
+    container_name: chat-service
+    networks:
+      - raijmobi-network
+  # ========== Consumidor de Usuários ==========
+  consumer-user:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python chat_service/consumer.py
+    depends_on:
       postgres-chat:
         condition: service_healthy
     environment:
@@ -66,85 +97,31 @@ services:
       - DB_PASSWORD=raijmobi_pass
       - DB_HOST=postgres-chat
       - DB_PORT=5432
-      # CORRIGIDO: Apontando para o Kafka local ('kafka-chat') para os testes isolados funcionarem
-      - KAFKA_BOOTSTRAP_SERVERS=kafka-chat:9092
-      - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-chat:9092
-      - NOTIFICATION_API_TOKEN=ch4t-s3rv1ce-sup3r-s3cr3t
-    container_name: chat-service
-    networks:
-      - raijmobi-network
-
-  
-  consumer-user:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    command: python chat_service/consumer.py
-    depends_on:
-      - kafka-chat
-    environment:
       - KAFKA_BOOTSTRAP_SERVERS=kafka-ride:9092
     container_name: chat-consumer-user
     networks:
       - raijmobi-network
 
-  
+  # ========== Consumidor de Caronas (Criação de Salas) ==========
   consumer-ride:
     build:
       context: .
       dockerfile: Dockerfile
     command: python chat_service/ride_consumer.py
     depends_on:
-      - kafka-chat
+      postgres-chat:
+        condition: service_healthy
     environment:
+      - DB_NAME=raijmobi_chat_db
+      - DB_USER=raijmobi_chat
+      - DB_PASSWORD=raijmobi_pass
+      - DB_HOST=postgres-chat
+      - DB_PORT=5432
+      # CORRIGIDO: Escutando o broker correto onde as caronas são publicadas
       - KAFKA_BOOTSTRAP_SERVERS_RIDE=kafka-ride:9092
     container_name: chat-consumer-ride
     networks:
       - raijmobi-network
-
-  # ========== Backup (Comentado devido ao contexto local ausente) ==========
-  # db-backup:
-  #   build:
-  #     context: ../RaijMobi-Services-postgres-backups/chat-service   # <- caminho para os scripts
-  #     dockerfile: Dockerfile
-  #   container_name: postgres-chat-db
-  #   environment:
-  #     - DB_HOST=postgres-chat
-  #     - DB_PORT=5432
-  #     - DB_NAME=${DB_NAME:-raijmobi_chat_db}
-  #     - DB_USER=${DB_USER:-raijmobi_chat}
-  #     - DB_PASSWORD=${DB_PASSWORD:-raijmobi_pass}
-  #     - BACKUP_DIR=/backups
-  #     - BACKUP_INTERVAL_SECONDS=86400
-  #     - TZ=America/Sao_Paulo
-  #   volumes:
-  #     - backup_chat_data:/backups
-  #   networks:
-  #     - raijmobi-network
-  #   depends_on:
-  #     - postgres-chat
-
-  # db-maintenance:
-  #   build:
-  #     context: ./maintenance
-  #     dockerfile: Dockerfile
-  #   container_name: postgres-chat-maintenance
-  #   depends_on:
-  #     postgres-chat:
-  #       condition: service_healthy
-  #   environment:
-  #     - DB_HOST=postgres-chat
-  #     - DB_PORT=5432
-  #     - DB_NAME=raijmobi_chat_db
-  #     - DB_USER=raijmobi_chat
-  #     - DB_PASSWORD=raijmobi_pass
-  #     - MAINTENANCE_INTERVAL_SECONDS=86400   # 24h; mude para 604800 (7 dias) se quiser
-  #     - TZ=America/Sao_Paulo
-  #     # - LOG_DIR=/app/logs                   # descomente se futuramente mapear volume de logs
-  #     # - LOG_RETENTION_DAYS=30
-  #   networks:
-  #     - raijmobi-network
-
 
 # ========== Volumes ==========
 volumes:

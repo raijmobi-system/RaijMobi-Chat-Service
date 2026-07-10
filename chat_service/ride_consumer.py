@@ -16,6 +16,7 @@ from kafka import KafkaConsumer
 from kafka.errors import KafkaError, KafkaTimeoutError
 from chat_service.models import ChatRoom, UserClient
 from django.conf import settings
+from django.utils.dateparse import parse_datetime # 🌟 IMPORTAÇÃO DO CONVERSOR DE DATAS
 
 # Configuração básica de logs para acompanhar tudo no terminal do Docker
 logging.basicConfig(
@@ -71,7 +72,11 @@ try:
             driver_id = data.get('driver_id')
             origin = data.get('origin', 'Desconhecido')
             destination = data.get('destination', 'Desconhecido')
-            start_time = data.get('start_time')
+            
+            # 🌟 CONVERSÃO DA DATA APLICADA AQUI (De texto para objeto nativo do Python)
+            start_time_raw = data.get('start_time')
+            start_time = parse_datetime(start_time_raw) if start_time_raw else None
+            
             price = data.get('price', '0.00')
             available_seats = data.get('available_seats', 0)
 
