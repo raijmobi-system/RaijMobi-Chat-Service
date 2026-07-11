@@ -151,7 +151,9 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 CHANNEL_LAYERS = {
     "default": {
-        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        # 🌟 CORREÇÃO DEFINITIVA: Mudamos de 'core.RedisChannelLayer' para 'pubsub.RedisPubSubChannelLayer'
+        # Isso elimina o polling de 5 segundos (BRPOP) e resolve o TimeoutError para sempre!
+        "BACKEND": "channels_redis.pubsub.RedisPubSubChannelLayer",
         "CONFIG": {
             "hosts": [os.environ.get("REDIS_URL", "redis://redis-chat:6379/0")],
         },
