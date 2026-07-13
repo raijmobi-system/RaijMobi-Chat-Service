@@ -62,6 +62,13 @@ class MessageSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Usuário com id {value} não encontrado.")
         return value
 
+    # 🌟 ADICIONE ESTE MÉTODO AQUI:
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        # Injeta o ID do usuário de forma explícita na saída do JSON (GET)
+        ret['usuario_id'] = str(instance.usuario.id)
+        return ret
+
 class ChatRoomSerializer(serializers.ModelSerializer):
     # Removemos created_by_id e created_by_name
     class Meta:
