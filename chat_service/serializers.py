@@ -70,8 +70,12 @@ class MessageSerializer(serializers.ModelSerializer):
         return ret
 
 class ChatRoomSerializer(serializers.ModelSerializer):
-    # Removemos created_by_id e created_by_name
+    driver = UserClientSerializer(read_only=True)
+
     class Meta:
         model = ChatRoom
-        fields = ['id', 'carona_id', 'ativo', 'criado_em']
+        fields = [
+            'id', 'carona_id', 'ativo', 'criado_em', 'driver',
+            'origin', 'destination', 'start_time', 'price', 'available_seats',
+        ]
         read_only_fields = ['id', 'criado_em']

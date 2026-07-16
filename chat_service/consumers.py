@@ -36,9 +36,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
             # Garante que a sala exista localmente
             room, _ = await database_sync_to_async(ChatRoom.objects.get_or_create)(carona_id=self.carona_id)
-            
+
             # Garante que o UserClient exista para não violar Integridade Estrutural (FK)
-            await self._ensure_user_exists(self.usuario_id)
+            user = await self._ensure_user_exists(self.usuario_id)
 
             # Salva no banco de dados local
             msg = await database_sync_to_async(Message.objects.create)(
@@ -52,6 +52,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     'type': 'chat_message',
                     'message': mensagem,
                     'usuario_id': str(self.usuario_id),
+                    'usuario_nome': user.name,
                     'data_envio': msg.data_envio.isoformat(),
                 }
             )
@@ -64,10 +65,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': event['message'],
             'usuario_id': event['usuario_id'],
+            'usuario_nome': event.get('usuario_nome', 'Participante'),
             'is_me': is_me,
             'data_envio': event.get('data_envio')
         }))
 
     @database_sync_to_async
     def _ensure_user_exists(self, user_id):
-        UserClient.objects.get_or_create(id=user_id, defaults={'name': 'Participante'})
+        user, _ = UserClient.objects.get_or_create(id=user_id, defaults={'name': 'Participante'})
+        return user
